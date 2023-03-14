@@ -21,6 +21,18 @@ def validar_usuario(nombre):
             return estado_valido
     return estado_valido
 
+def validar_estudiante(cedula):
+    estado_valido = True
+    conectar = conectar_db()
+    base_datos = conectar.cursor()
+    base_datos.execute("SELECT cedula FROM estudiantes")
+    estudiantes = base_datos.fetchall()
+    for estudiante in estudiantes:
+        if estudiante[0] == cedula:
+            estado_valido = False
+            return estado_valido
+    return estado_valido
+
 def conectar_db():
     mydb = mysql.connector.connect(
         host="localhost",
@@ -117,6 +129,81 @@ class Estudiante:
         self.apellido = apellido
         self.correo = correo
         self.celular = celular
+    
+    def crear_estudiante(self):
+        conectar = conectar_db()
+        base_datos = conectar.cursor()
+        estudiante_valido = validar_estudiante(self.cedula)
+        if estado_valido:
+            sql = "INSERT INTO estudiantes (cedula, nombre, apellido, correo, celular) VALUES (%s, %s, %s, %s, %s)"
+            val = (self.cedula, self.nombre, self.apellido, self.correo, self.celular)
+            base_datos.execute(sql, val)
+            conectar.commit()
+            print(f"El Estudiante: {self.nombre} con CI: {self.cedula} creado exitosamente")
+        else:
+            print("Error Estudiante duplicado")
+
+    def buscar_estudiante(self):
+        estudiante_valido = validar_estudiante(self.cedula)
+        if not estado_valido:
+            print("Estudiante Encontrado")
+            conectar = Connection_DB()
+            base_datos = conectar.cursor()
+            cedula_estudiante = (f"{self.cedula}",)
+            sql = "SELECT * FROM estudiantes WHERE cedula= %s"
+            base_datos.execute(sql, cedula_estudiante)
+            estudiantes = base_datos.fetchall()
+            for estudiante in estudiantes:
+                print("Id     Cedula   Nombre   Apellido  Correo      Celular")
+                print(f"{estudiante[0]}      {estudiante[1]}       {estudiante[2]}     {estudiante[3]}     {estudiante[4]}     {estudiante[5]}")
+        else:
+            print("Estudiante no registrado!!!")
+
+    def modificar_estudiante(self):
+        estudiante_valido = validar_estudiante(self.cedula)
+        if not estado_valido:
+            print("Estudiante Encontrado")
+            print("Ingrese las credenciales del estudiante a modificar")
+            cedula = input("Cedula: ")
+            nombre = input("Nombre: ")
+            apellido = input("Apellido: ")
+            correo = input("Correo: ")
+            celular = input("Celular: ")
+            confirmacion = input("Confirme la actualizacion del estudiante (S/N): ")
+            if confirmacion.upper() == "S":
+                conector = conectar_db()
+                base_datos = conectar.cursor()
+                estudiante_modificado = (f"{cedula}", f"{nombre}", f"{apellido}", f"{correo}", f"{celular}", f"{self.cedula}")
+                sql = "UPDATE estudiantes set cedula= %s, nombre= %s, apellido= %s, correo= %s, celular= %s WHERE cedula= %s"
+                base_datos.execute(sql, estudiante_modificado)
+                conectar.commit()
+                print("Estudiante modificado exitosamente")
+            elif confirmacion.upper() == "N":
+                print("Estudiante no modificado")
+            else:
+                print("Opcion no valida")
+        else:
+            print("Estudiante no registrado!!!")
+
+    def eliminar_estudiante(self):
+        estudiante_valido = validar_estudiante(self.cedula)
+        if not estado_valido:
+            print("Estudiante Encontrado")
+            confirmacion = input("Confirme la eliminacion del estudiante (S/N): ")
+            if confirmacion.upper() == "S":
+                conectar = conectar_db()
+                base_datos = conectar.cursor()
+                cedula = (f"{self.cedula}",)
+                sql = "DELETE FROM estudiantes WHERE cedula= %s"
+                base_datos.execute(sql, cedula)
+                conectar.commit()
+                print("Usuario eliminado exitosamente")
+            elif confirmation.upper() == "N":
+                print("Estudiante no eliminado")
+            else:
+                print("Opcion no valida")
+        else:
+            print("Estudiante no registrado!!!")
 
 
 class Calificaciones(Estudiante):
